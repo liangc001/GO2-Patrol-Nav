@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>Go2 控制面板</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #f5f7fa);
+      margin: 0;
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      gap: 40px;
+    }
+
+    h1 {
+      margin-bottom: 0;
+      font-size: 48px;
+      color: #1e3a8a;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .panel {
+      background: #ffffffdd;
+      padding: 40px 60px;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      min-width: 320px;
+    }
+
+    button {
+      width: 260px;
+      padding: 16px 0;
+      font-size: 20px;
+      font-weight: 600;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.25);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .btn-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; }
+    .btn-green { background: linear-gradient(135deg, #10b981, #34d399); color: white; }
+    .btn-yellow { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; }
+    .btn-red { background: linear-gradient(135deg, #ef4444, #f87171); color: white; }
+    
+    i {
+      font-size: 18px;
+    }
+
+    .gallery-container {
+      width: 80%;
+      max-width: 1200px;
+      background: #ffffffdd;
+      padding: 30px 40px;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .gallery-container h2 {
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-size: 28px;
+      color: #1e3a8a;
+    }
+
+    .image-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      width: 100%;
+      max-height: 500px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .image-gallery img {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: zoom-in; /* 改变鼠标指针，提示可点击 */
+    }
+
+    .image-gallery img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    /* --- 新增：Lightbox 样式 --- */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85); /* 更深的背景 */
+      display: none; /* 默认隐藏 */
+      justify-content: center;
+      align-items: center;
+      z-index: 1000; /* 确保在最上层 */
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .lightbox-content {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #fff;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .close-btn:hover {
+      color: #bbb;
+    }
+    /* -------------------------- */
+  </style>
+</head>
+<body>
+  <h1>Go2 控制面板</h1>
+
+  <div class="panel">
+    <!-- ... 按钮部分保持不变 ... -->
+    <button id="btnMapping" class="btn-blue"><i class="fas fa-map"></i>启动建图</button>
+    <button id="btnPlanning" class="btn-green"><i class="fas fa-route"></i>规划路线</button>
+    <button id="btnExecute" class="btn-red"><i class="fas fa-play-circle"></i>启动识别</button>
+    <button id="btnRecognition" class="btn-yellow"><i class="fas fa-flag-checkered"></i>执行路径</button>
+  </div>
+
+  <div class="gallery-container">
+    <h2><i class="fas fa-camera-retro"></i> 识别成功截图</h2>
+    <div class="image-gallery" id="imageGallery">
+      <!-- 图片将由 JavaScript 动态插入这里 -->
+    </div>
+  </div>
+
+  <!-- --- 新增：Lightbox 的 HTML 结构 --- -->
+  <div id="lightbox" class="lightbox-overlay">
+    <span class="close-btn" id="closeBtn">&times;</span>
+    <img class="lightbox-content" id="lightboxImg">
+  </div>
+  <!-- --------------------------------- -->
+
+  <script>
+    const apiBase = "http://localhost:5000";
+
+    const buttons = [
+      document.getElementById("btnMapping"),
+      document.getElementById("btnPlanning"),
+      document.getElementById("btnExecute"),
+      document.getElementById("btnRecognition"),
+    ];
+    
+    const gallery = document.getElementById("imageGallery");
+
+    // --- 新增：获取 Lightbox 相关元素 ---
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const closeBtn = document.getElementById('closeBtn');
+    // ---------------------------------
+
+    const defaultTexts = buttons.map(btn => btn.innerText);
+
+    function updateStatus() {
+        // ... 此函数保持不变 ...
+        fetch(`${apiBase}/status`)
+        .then(r => r.json())
+        .then(data => {
+          data.forEach((s, i) => {
+            const btn = buttons[i];
+            if (s === "running") {
+              btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 运行中...`;
+              btn.disabled = true;
+            } else {
+              btn.innerText = defaultTexts[i];
+              btn.disabled = false;
+            }
+          });
+        })
+        .catch(err => console.error("状态更新失败:", err));
+    }
+
+    function callAPI(idx) {
+        // ... 此函数保持不变 ...
+        fetch(`${apiBase}/start/${idx}`, {method: "POST"})
+        .then(r => r.json())
+        .then(res => {
+          console.log(res.msg);
+          updateStatus();
+        })
+        .catch(err => console.error("请求失败:", err));
+    }
+
+    // --- 修改：更新图片库的函数 ---
+    function updateGallery() {
+      fetch(`${apiBase}/images`)
+        .then(response => response.json())
+        .then(imageFiles => {
+          // 采用更简单的“先清空再重建”逻辑，确保顺序正确
+          gallery.innerHTML = '';
+          imageFiles.forEach(filename => {
+            const img = document.createElement("img");
+            img.src = `${apiBase}/get_image/${filename}`;
+            img.alt = `识别截图: ${filename}`;
+            gallery.appendChild(img);
+          });
+        })
+        .catch(error => console.error("获取图片列表失败:", error));
+    }
+    // ---------------------------
+
+    buttons.forEach((btn, i) => {
+      btn.onclick = () => callAPI(i+1);
+    });
+    
+    // --- 新增：为 Lightbox 添加事件监听 ---
+    // 使用事件委托，因为图片是动态添加的
+    gallery.addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG') {
+        lightbox.style.display = 'flex'; // 使用 flex 方便居中
+        lightboxImg.src = e.target.src;
+      }
+    });
+
+    // 关闭 Lightbox 的两种方式
+    closeBtn.onclick = function() {
+      lightbox.style.display = 'none';
+    }
+    lightbox.onclick = function(e) {
+      // 确保点击的是背景遮罩而不是图片本身
+      if (e.target.id === 'lightbox') {
+        lightbox.style.display = 'none';
+      }
+    }
+    // ------------------------------------
+
+    setInterval(() => {
+        updateStatus();
+        updateGallery();
+    }, 2000);
+
+    updateStatus();
+    updateGallery();
+  </script>
+</body>
+</html>

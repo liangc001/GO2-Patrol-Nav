@@ -1,0 +1,50 @@
+[project]
+name = "go2-webrtc-connect"
+version = "0.2.1"
+description = "Connect to the Unitree Go2 with WebRTC"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "legion1581", email = "legion1581@gmail.com" },
+    { name = "phospho", email = "contact@phospho.ai" },
+]
+
+
+dependencies = [
+    "aiortc>=1.9.0",
+    "pycryptodome",
+    "requests",
+    "wasmtime",
+    "flask-socketio",
+    "lz4",
+    "numpy",
+    "packaging",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.8.1", "mypy>=1.13.0", "types-requests>=2.32"]
+audio = ["sounddevice", "pyaudio", "pydub"]
+video = ["opencv-python-headless"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = [
+    "tests",
+    "tests.*",
+    "docs",
+    "docs.*",
+    "examples",
+    "examples.*",
+    "__pycache__",
+    "__pycache__.*",
+]
+
+[tool.setuptools]
+# include data files as listed in MANIFEST.in
+include-package-data = true
